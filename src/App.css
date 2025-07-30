@@ -1,38 +1,239 @@
-.App {
-  text-align: center;
+/* Filename: src/App.css */
+
+/* Basic Reset for the whole page */
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background-color: #1a1a1a; /* Background for the very outer container */
+    overflow: hidden; /* Prevent scrolling if UI elements go off-screen */
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
+/* --- App Container Styles --- */
+.app-container {
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background-color: #1a1a1a; /* Ensure background matches body if body has padding/margin */
+    overflow: hidden; /* Important to prevent unwanted scrollbars */
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
+/* --- UI Overlay Styles (for menus) --- */
+.ui-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start; /* Align content to top for in-game info */
+    align-items: center;
+    z-index: 10; /* Ensure UI is above canvas if both are visible */
+    padding-top: 20px; /* Space from top */
 }
 
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
+/* --- In-Game Level Title --- */
+.level-title {
+    font-size: 2.5em;
+    color: white;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+    margin-top: 20px;
+    margin-bottom: 10px;
+    z-index: 11; /* Ensure title is above canvas */
 }
 
-.App-link {
-  color: #61dafb;
+/* --- In-Game Instructions --- */
+.instructions {
+    position: absolute;
+    bottom: 20px;
+    color: #bbb;
+    font-size: 0.9em;
+    text-align: center;
+    padding: 0 20px;
+    z-index: 11; /* Ensure instructions are above canvas */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.back-to-levels-button {
+    background-color: #f0ad4e; /* Orange */
+    color: white;
+    padding: 8px 15px;
+    font-size: 0.9em;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-top: 10px;
+    transition: background-color 0.3s ease;
+}
+
+.back-to-levels-button:hover {
+    background-color: #ec971f;
+}
+
+/* --- Canvas Styles --- */
+.game-canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1; /* Canvas is behind the UI overlay for menus */
+    background-color: lightgray; /* Set canvas background here instead of <color attach> for overall consistency */
+    border-radius: 15px; /* Apply to the visible canvas area */
+    box-shadow: 0 0 20px rgba(0, 255, 0, 0.5); /* Apply to the visible canvas area */
+}
+
+/* --- Main Menu Styles --- */
+.menu-screen {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background-color: rgba(0, 0, 0, 0.8); /* Semi-transparent overlay */
+    z-index: 100; /* On top of everything */
+}
+
+.menu-title {
+    font-size: 4em;
+    color: white;
+    margin-bottom: 40px;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+}
+
+.menu-button {
+    background-color: #4CAF50; /* Green */
+    color: white;
+    padding: 15px 30px;
+    font-size: 1.5em;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    margin: 10px;
+    transition: background-color 0.3s ease;
+}
+
+.menu-button:hover {
+    background-color: #45a049;
+}
+
+/* --- Level Select Styles --- */
+.level-select-screen {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background-color: rgba(0, 0, 0, 0.85);
+    z-index: 100;
+}
+
+.level-select-title {
+    font-size: 3em;
+    color: white;
+    margin-bottom: 30px;
+}
+
+.level-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 20px;
+    max-width: 800px;
+    width: 90%;
+    padding: 20px;
+    border-radius: 10px;
+    background-color: rgba(255, 255, 255, 0.1);
+    margin-bottom: 30px;
+}
+
+.level-button {
+    background-color: #007bff; /* Blue */
+    color: white;
+    padding: 20px;
+    font-size: 1.2em;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.level-button:hover {
+    background-color: #0056b3;
+}
+
+.level-button-locked {
+    background-color: #555;
+    color: #aaa;
+    padding: 20px;
+    font-size: 1.2em;
+    border: none;
+    border-radius: 5px;
+    cursor: not-allowed;
+}
+
+.locked-text {
+    font-size: 0.8em;
+    opacity: 0.7;
+}
+
+.level-select-back-button {
+    background-color: #dc3545; /* Red */
+    color: white;
+    padding: 10px 20px;
+    font-size: 1em;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.level-select-back-button:hover {
+    background-color: #c82333;
+}
+
+/* --- Options Screen Styles --- */
+.options-screen {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background-color: rgba(0, 0, 0, 0.85);
+    z-index: 100;
+}
+
+.options-title {
+    font-size: 3em;
+    color: white;
+    margin-bottom: 30px;
+}
+
+.options-text {
+    font-size: 1.2em;
+    color: white;
+    margin: 10px 0;
+}
+
+.options-back-button {
+    background-color: #6c757d; /* Gray */
+    color: white;
+    padding: 10px 20px;
+    font-size: 1em;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-top: 30px;
+    transition: background-color 0.3s ease;
+}
+
+.options-back-button:hover {
+    background-color: #5a6268;
 }
