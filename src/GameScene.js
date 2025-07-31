@@ -1,13 +1,27 @@
 // Filename: src/GameScene.js
-import { useRef, useState, useCallback, useEffect } from 'react';
+import { useRef, useState, useCallback, useEffect } from 'react'; // React import is good practice
 import { OrbitControls, Line as DreiLine } from '@react-three/drei';
+import { useThree } from '@react-three/fiber'; // <-- Re-import useThree
 import * as THREE from 'three';
+// import { useTexture } from '@react-three/drei';
 
-// --- Dot Component ---
-// Renders a single 3D dot (sphere).
+/**
+ * Dot Component
+ * Renders a single 3D dot (sphere) in the scene.
+ * @param {object} props - Component props.
+ * @param {number[]} props.position - The [x, y, z] coordinates of the dot.
+ * @param {string} props.color - The color of the dot.
+ * @param {string} props.dotId - A unique identifier for the dot.
+ * @param {function} props.onClick - Callback function when the dot is clicked.
+ */
 function Dot({ position, color, dotId, onClick }) {
     const meshRef = useRef();
 
+    /**
+     * Handles the click event on the dot.
+     * Stops event propagation to prevent interference with OrbitControls.
+     * @param {object} event - The click event object.
+     */
     const handleClick = useCallback((event) => {
         event.stopPropagation();
         onClick(dotId, position);
@@ -21,25 +35,51 @@ function Dot({ position, color, dotId, onClick }) {
             userData={{ isDot: true, dotId: dotId, color: color }}
         >
             <sphereGeometry args={[0.04]} />
-            <meshStandardMaterial color={color} />
+            <meshStandardMaterial
+                color={color}
+            />
         </mesh>
     );
 }
 
-// --- GameScene Component ---
-// This component sets up the 3D environment and manages game logic for a single level.
-export function GameScene({ dotsData, onLevelComplete }) { // Export GameScene
-    const [firstSelectedDot, setFirstSelectedDot] = useState(null); // { id, position: THREE.Vector3, color }
-    const [connectedLines, setConnectedLines] = useState(new Set()); // Stores 'dotA-dotB' keys
+/**
+ * GameScene Component
+ * Sets up the 3D environment and manages game logic for a single level.
+ * @param {object} props - Component props.
+ * @param {object[]} props.dotsData - Array of dot objects for the current level.
+ * @param {function} props.onLevelComplete - Callback function to notify when the level is completed.
+ */
+export function GameScene({ dotsData, onLevelComplete, level }) {
+    const { camera } = useThree(); // <--- Get the camera instance from useThree
+    const controlsRef = useRef(); // Ref for OrbitControls
 
-    // Reset connections and selection when dotsData changes (i.e., new level loaded)
+    const [firstSelectedDot, setFirstSelectedDot] = useState(null);
+    const [connectedLines, setConnectedLines] = useState(new Set());
+
+    /**
+     * Sets the initial camera position and target when the component mounts or dotsData changes.
+     */
     useEffect(() => {
         setConnectedLines(new Set());
         setFirstSelectedDot(null);
-    }, [dotsData]);
 
+        // Set initial camera position (This overrides the Canvas camera prop for OrbitControls)
+        if (camera && controlsRef.current) {
+            camera.position.set(level.camera[0], level.camera[1], level.camera[2]); // Example: Isometric view position
+            controlsRef.current.target.set(0, 0, 0); // Example: Look at the center of the scene
+            controlsRef.current.update(); // Important: Update controls after changing camera/target
+        }
+    }, [dotsData, camera, level]); // Depend on camera as well
+
+    /**
+     * Handles the click logic for dots.
+     * Manages selecting the first dot and attempting to connect to a second dot.
+     * @param {string} clickedDotId - The ID of the clicked dot.
+     * @param {number[]} clickedDotPositionArray - The [x, y, z] position array of the clicked dot.
+     */
     const handleDotClick = useCallback((clickedDotId, clickedDotPositionArray) => {
         const clickedDotData = dotsData.find(d => d.id === clickedDotId);
+        console.log(camera.position)
 
         if (!clickedDotData) {
             console.error(`Clicked dot with ID ${clickedDotId} not found in current level's dots data.`);
@@ -67,9 +107,7 @@ export function GameScene({ dotsData, onLevelComplete }) { // Export GameScene
                     console.log(`Connected ${firstSelectedDot.id} to ${secondSelectedDotId} (Same Color!)`);
                     setConnectedLines(prevLines => {
                         const newLines = new Set(prevLines).add(connectionKey);
-                        // --- Level Completion Check (Simple: just count same-color connections) ---
-                        // For a real game, you'd check `newLines.size` against `dotsData.targetConnections.length`
-                        // and ensure all required specific connections are made.
+
                         const blueDots = dotsData.filter(d => d.color === 'blue');
                         const redDots = dotsData.filter(d => d.color === 'red');
                         const greenDots = dotsData.filter(d => d.color === 'green');
@@ -85,13 +123,9 @@ export function GameScene({ dotsData, onLevelComplete }) { // Export GameScene
                         if (yellowDots.length >= 2) expectedSameColorConnections += 1;
                         if (orangeDots.length >= 2) expectedSameColorConnections += 1;
 
-
-                        // This is a very basic completion check: if we have any valid connections.
-                        // You'll need to expand this based on your actual level design (e.g., targetConnections in level data).
                         if (newLines.size >= expectedSameColorConnections && newLines.size > 0) {
-                            // Delay slightly so the last line renders before screen transition
                             setTimeout(() => {
-                                onLevelComplete(); // Call the App.js callback
+                                onLevelComplete();
                             }, 500);
                         }
                         return newLines;
@@ -103,9 +137,9 @@ export function GameScene({ dotsData, onLevelComplete }) { // Export GameScene
                 console.log(`Cannot connect: ${firstSelectedDot.id} (${firstSelectedDot.color}) to ` +
                             `${clickedDotData.id} (${clickedDotData.color}). Colors must match.`);
             }
-            setFirstSelectedDot(null); // Reset selection
+            setFirstSelectedDot(null);
         }
-    }, [firstSelectedDot, connectedLines, dotsData, onLevelComplete]);
+    }, [firstSelectedDot, connectedLines, dotsData, onLevelComplete, camera]);
 
     return (
         <>
@@ -150,7 +184,11 @@ export function GameScene({ dotsData, onLevelComplete }) { // Export GameScene
                 />
             )}
 
-            <OrbitControls makeDefault />
+            {/* Grid Helper Background */}
+            <gridHelper args={[100, 100, '#d1d1d1', '#d1d1d1']} position={[0, -0.5, 0]} />
+
+            {/* OrbitControls for camera interaction (pan, zoom, rotate) */}
+            <OrbitControls ref={controlsRef} makeDefault /> {/* <-- Assign ref here */}
         </>
     );
 }
